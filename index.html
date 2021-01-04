@@ -1,0 +1,40 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+    {{d.d}}
+    <div>{{a}}</div>
+  </div>
+  <script src="./Vue.js"></script>
+  <script>
+    let vm = new Vue({
+      el: "#app",
+      data: {
+        a: "value:a",
+        b: {
+          b: "value:b"
+        },
+        d: {
+          d: "value:d"
+        },
+        y: {
+          y: "value:y"
+        },
+        x: {
+          x: "value:x"
+        },
+        c: {
+          c: "value:c"
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
