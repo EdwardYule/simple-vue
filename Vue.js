@@ -43,44 +43,54 @@ const Vue = (function () {
     return data;
   }
 
+  const compileUtils = {
+    
+  }
+
   class Compile {
     constructor(selector, vm) {
-      this.$el = document.querySelector(selector);
-      this.$vm = vm;
+      this.el = document.querySelector(selector);
+      this.data = vm.$options.data;
       this.nodeToFrament();
     }
     nodeToFrament() {
       let fragment = document.createDocumentFragment();
-      while (this.$el.firstChild) {
-        fragment.appendChild(this.$el.firstChild);
+      while (this.el.firstChild) {
+        fragment.appendChild(this.el.firstChild);
       }
-      this.replace(fragment);
-      this.$el.appendChild(fragment);
+      this.compile(fragment);
+      this.el.appendChild(fragment);
     }
-    replace(fragment) {
-      let reg = /\{\{[^}^}]*\}\}/g;
+    compile(fragment) {
       Array.from(fragment.childNodes).forEach(node => {
         if (node.nodeType == Node.ELEMENT_NODE) {
-          this.replace(node, this.$vm);
+          this.compile(node, this.vm);
         }
         if (node.nodeType == Node.TEXT_NODE) {
-          let text = node.textContent;
-          let exp = (text.match(reg) || []).map(ele => ele.replace("{{", "").replace("}}", ""))[0];
-          if (exp) {
-            Publisher.target = new Subscriber(() => {
-              node.textContent = text.replace(/\{\{[^}]*\}\}/, this.getValue(this.$vm.$options.data, exp));
-            })
-            node.textContent = text.replace(/\{\{[^}]*\}\}/, this.getValue(this.$vm.$options.data, exp));
-            Publisher.target = null;
-          }
+          this.compileTemplate(node);
         }
       })
     }
-    getValue(data, exp) {
-      let result = exp.split(".").reduce((acu, key) => {
-        return acu = acu[key];
-      }, data)
-      return result;
+    compileTemplate(node) {
+      const reg = /\{\{[^}^}]*\}\}/;
+      let text = node.textContent;
+      let exps = (text.match(new RegExp(reg, 'g')) || []).map(ele => ele.replace("{{", "").replace("}}", ""));
+      if (exps.length) {
+        Publisher.target = new Subscriber(() => {
+          node.textContent = this.getValue(text, exps, reg);
+        })
+        node.textContent = this.getValue(text, exps, reg);
+        Publisher.target = null;
+      }
+    }
+    getValue(template, exps, reg) {
+      exps.forEach(exp => {
+        let value = exp.split(".").reduce((acu, key) => {
+          return acu = acu[key];
+        }, this.data)
+        template = template.replace(reg, value);
+      })
+      return template;
     }
   }
 
