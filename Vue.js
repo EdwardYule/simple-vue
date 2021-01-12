@@ -44,7 +44,18 @@ const Vue = (function () {
   }
 
   const compileUtils = {
-    
+    getValue(template, data) {
+      const reg = /\{\{[^}^}]*\}\}/;
+      let result = template;
+      let exps = (template.match(new RegExp(reg, 'g')) || []).map(ele => ele.replace("{{", "").replace("}}", ""));
+      exps.forEach(exp => {
+        let value = exp.split(".").reduce((acu, key) => {
+          return acu = acu[key];
+        }, data)
+        result = result.replace(reg, value);
+      })
+      return result;
+    }
   }
 
   class Compile {
@@ -72,25 +83,14 @@ const Vue = (function () {
       })
     }
     compileTemplate(node) {
-      const reg = /\{\{[^}^}]*\}\}/;
       let text = node.textContent;
-      let exps = (text.match(new RegExp(reg, 'g')) || []).map(ele => ele.replace("{{", "").replace("}}", ""));
-      if (exps.length) {
+      if (text.match(/\{\{[^}^}]*\}\}/)) {
         Publisher.target = new Subscriber(() => {
-          node.textContent = this.getValue(text, exps, reg);
+          node.textContent = compileUtils.getValue(text, this.data);
         })
-        node.textContent = this.getValue(text, exps, reg);
+        node.textContent = compileUtils.getValue(text, this.data);
         Publisher.target = null;
       }
-    }
-    getValue(template, exps, reg) {
-      exps.forEach(exp => {
-        let value = exp.split(".").reduce((acu, key) => {
-          return acu = acu[key];
-        }, this.data)
-        template = template.replace(reg, value);
-      })
-      return template;
     }
   }
 
